@@ -1,16 +1,21 @@
-(global-linum-mode 1)
+(global-linum-mode t)
+(setq tab-width 2)
+(setq js-indent-level 2)
+(prefer-coding-system 'utf-8)
+(setq default-buffer-file-coding-system 'utf-8)
 
 (require-package 'evil)
 (evil-mode t)
 
 (require-package 'evil-surround)
-(global-evil-surround-mode 1)
+(global-evil-surround-mode t)
 
 (require-package 'evil-numbers)
 (global-set-key (kbd "C-c +") 'evil-numbers/inc-at-pt)
 (global-set-key (kbd "C-c -") 'evil-numbers/dec-at-pt)
 
 (require-package 'evil-leader)
+(global-evil-leader-mode)
 
 (require-package 'evil-nerd-commenter)
 ;; Emacs key bindings
@@ -19,12 +24,11 @@
 (global-set-key (kbd "C-c c") 'evilnc-copy-and-comment-lines)
 (global-set-key (kbd "C-c p") 'evilnc-comment-or-uncomment-paragraphs)
 ;; Vim key bindings
-(global-evil-leader-mode)
 (evil-leader/set-key
-  "ci" 'evilnc-comment-or-uncomment-lines
+  "cc" 'evilnc-comment-or-uncomment-lines
   "cl" 'evilnc-quick-comment-or-uncomment-to-the-line
-  "ll" 'evilnc-quick-comment-or-uncomment-to-the-line
-  "cc" 'evilnc-copy-and-comment-lines
+  "ll" 'evilnc-quick-comment-or-uncom
+  "ci" 'evilnc-copy-and-comment-lines
   "cp" 'evilnc-comment-or-uncomment-paragraphs
   "cr" 'comment-or-uncomment-region
   "cv" 'evilnc-toggle-invert-comment-line-by-line
@@ -76,7 +80,7 @@
 (define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-char-mode)
 (define-key evil-motion-state-map (kbd "C-SPC") #'evil-ace-jump-word-mode)
 (define-key evil-operator-state-map (kbd "SPC") #'evil-ace-jump-char-mode)
-(define-key evil-operator-state-map (kbd "C-SPC") #'evil-ace-jump-char-to-mode) 
+(define-key evil-operator-state-map (kbd "C-SPC") #'evil-ace-jump-char-to-mode)
 (define-key evil-operator-state-map (kbd "M-SPC") #'evil-ace-jump-word-mode)
 ;; different jumps for different visual modes
 (defadvice evil-visual-line (before spc-for-line-jump activate)
