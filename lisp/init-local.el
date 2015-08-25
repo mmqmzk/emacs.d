@@ -1,8 +1,29 @@
+(set-language-environment 'Chinese-gbk)
+(set-default buffer-file-coding-system 'utf-8-unix)
+(set-default-coding-systems 'utf-8-unix)
+(setq-default pathname-coding-system 'euc-cn)
+(setq file-name-coding-system 'euc-cn)
+(prefer-coding-system 'cp950)
+(prefer-coding-system 'gb2312)
+(prefer-coding-system 'cp936)
+(prefer-coding-system 'gb18030)
+(prefer-coding-system 'utf-16)
+(prefer-coding-system 'utf-8-dos)
+(prefer-coding-system 'utf-8-unix)
+
+;; Setting English Font
+(set-face-attribute
+ 'default nil :font "Consolas 12")
+
+;; Chinese Font
+(dolist (charset '(kana han symbol cjk-misc bopomofo))
+  (set-fontset-font (frame-parameter nil 'font)
+                    charset
+                    (font-spec :family "Microsoft Yahei" :size 12)))
+
 (global-linum-mode t)
 (setq tab-width 2)
 (setq js-indent-level 2)
-(prefer-coding-system 'utf-8)
-(setq default-buffer-file-coding-system 'utf-8)
 
 (require-package 'evil)
 (evil-mode t)
@@ -16,6 +37,10 @@
 
 (require-package 'evil-leader)
 (global-evil-leader-mode)
+
+(setq-default org-display-custom-times t)
+(setq org-time-stamp-formats '("<%Y-%m-%d>" . "<%Y-%m-%d %H:%M>"))
+(setq org-time-stamp-custom-formats '("<%Y-%m-%d>" . "<%Y-%m-%d [%H:%M]>"))
 
 (require-package 'evil-nerd-commenter)
 ;; Emacs key bindings
@@ -78,10 +103,10 @@
 (add-hook 'ace-jump-mode-end-hook 'exit-recursive-edit)
 ;; some proposals for binding:
 (define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-char-mode)
-(define-key evil-motion-state-map (kbd "C-SPC") #'evil-ace-jump-word-mode)
+;; (define-key evil-motion-state-map (kbd "C-;") #'evil-ace-jump-word-mode)
 (define-key evil-operator-state-map (kbd "SPC") #'evil-ace-jump-char-mode)
-(define-key evil-operator-state-map (kbd "C-SPC") #'evil-ace-jump-char-to-mode)
-(define-key evil-operator-state-map (kbd "M-SPC") #'evil-ace-jump-word-mode)
+;; (define-key evil-operator-state-map (kbd "C-;") #'evil-ace-jump-char-to-mode)
+;; (define-key evil-operator-state-map (kbd "M-;") #'evil-ace-jump-word-mode)
 ;; different jumps for different visual modes
 (defadvice evil-visual-line (before spc-for-line-jump activate)
   (define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-line-mode))
@@ -90,4 +115,5 @@
 (defadvice evil-visual-block (before spc-for-char-jump activate)
   (define-key evil-motion-state-map (kbd "SPC") #'evil-ace-jump-char-mode))
 
+(setq org-agenda-files (list "~/org/todo.org"))
 (provide 'init-local)
