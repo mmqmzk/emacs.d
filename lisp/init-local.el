@@ -9,17 +9,7 @@
 (prefer-coding-system 'gb18030)
 (prefer-coding-system 'utf-16)
 (prefer-coding-system 'utf-8-dos)
-(prefer-coding-system 'utf-8-unix)
-
-;; Setting English Font
-(set-face-attribute
- 'default nil :font "Consolas 12")
-
-;; Chinese Font
-(dolist (charset '(kana han symbol cjk-misc bopomofo))
-  (set-fontset-font (frame-parameter nil 'font)
-                    charset
-                    (font-spec :family "Microsoft Yahei" :size 12)))
+(prefer-coding-system 'utf-8)
 
 (global-linum-mode t)
 (setq tab-width 2)
