@@ -5,12 +5,13 @@
   (maybe-require-package 'grab-mac-link)
   (require-package 'org-mac-iCal))
 
+(maybe-require-package 'org-cliplink)
+
 (define-key global-map (kbd "C-c l") 'org-store-link)
 (define-key global-map (kbd "C-c a") 'org-agenda)
 
 ;; Various preferences
 (setq org-log-done t
-      org-completion-use-ido t
       org-edit-timestamp-down-means-later t
       org-archive-mark-done nil
       org-hide-emphasis-markers t
