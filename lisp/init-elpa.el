@@ -1,64 +1,51 @@
-;;; Find and load the correct package.el
-
-;; When switching between Emacs 23 and 24, we always use the bundled package.el in Emacs 24
-(let ((package-el-site-lisp-dir
-       (expand-file-name "site-lisp/package" user-emacs-directory)))
-  (when (and (file-directory-p package-el-site-lisp-dir)
-             (> emacs-major-version 23))
-    (message "Removing local package.el from load-path to avoid shadowing bundled version")
-    (setq load-path (remove package-el-site-lisp-dir load-path))))
+;;; init-elpa.el --- Settings and helpers for package.el -*- lexical-binding: t -*-
+;;; Commentary:
+;;; Code:
 
 (require 'package)
+
+
+;;; Install into separate package dirs for each Emacs version, to prevent bytecode incompatibility
+(let ((versioned-package-dir
+       (expand-file-name (format "elpa-%s.%s" emacs-major-version emacs-minor-version)
+                         user-emacs-directory)))
+  (setq package-user-dir versioned-package-dir))
 
 
 
 ;;; Standard package repositories
 
-(when (< emacs-major-version 24)
-  ;; Mainly for ruby-mode
-  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/")))
-
-;; We include the org repository for completeness, but don't normally
-;; use it.
-(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/"))
-
-(when (< emacs-major-version 24)
-  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
-
-
-(defconst sanityinc/no-ssl (or (< emacs-major-version 24)
-                               (and (memq system-type '(windows-nt ms-dos))
-                                    (not (gnutls-available-p)))))
-
-;;; Also use Melpa for most packages
-(add-to-list 'package-archives
-             `("melpa" . ,(if sanityinc/no-ssl
-                              "http://melpa.org/packages/"
-                            "https://melpa.org/packages/")))
-
-;; NOTE: In case of MELPA problems, the official mirror URL is
-;; https://www.mirrorservice.org/sites/stable.melpa.org/packages/
-
-
+(let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
+                    (not (gnutls-available-p))))
+       (proto (if no-ssl "http" "https")))
+  (add-to-list 'package-archives (cons "melpa" (concat proto "://melpa.org/packages/")) t)
+  ;; Official MELPA Mirror, in case necessary.
+  ;;(add-to-list 'package-archives (cons "melpa-mirror" (concat proto "://www.mirrorservice.org/sites/melpa.org/packages/")) t)
+  (if (< emacs-major-version 24)
+      ;; For important compatibility libraries like cl-lib
+      (add-to-list 'package-archives '("gnu" . (concat proto "://elpa.gnu.org/packages/")))
+    (unless no-ssl
+      ;; Force SSL for GNU ELPA
+      (setcdr (assoc "gnu" package-archives) "https://elpa.gnu.org/packages/"))))
 
 
 ;;; On-demand installation of packages
+
+(require 'cl-lib)
 
 (defun require-package (package &optional min-version no-refresh)
   "Install given PACKAGE, optionally requiring MIN-VERSION.
 If NO-REFRESH is non-nil, the available package lists will not be
 re-downloaded in order to locate PACKAGE."
-  (if (package-installed-p package min-version)
-      t
-    (if (or (assoc package package-archive-contents) no-refresh)
-        (if (boundp 'package-selected-packages)
-            ;; Record this as a package the user installed explicitly
-            (package-install package nil)
-          (package-install package))
-      (progn
-        (package-refresh-contents)
-        (require-package package min-version t)))))
-
+  (or (package-installed-p package min-version)
+      (let* ((known (cdr (assoc package package-archive-contents)))
+             (versions (mapcar #'package-desc-version known)))
+        (if (cl-find-if (lambda (v) (version-list-<= min-version v)) versions)
+            (package-install package)
+          (if no-refresh
+              (error "No version of %s >= %S is available" package min-version)
+            (package-refresh-contents)
+            (require-package package min-version t))))))
 
 (defun maybe-require-package (package &optional min-version no-refresh)
   "Try to install PACKAGE, and return non-nil if successful.
@@ -78,15 +65,33 @@ locate PACKAGE."
 (setq package-enable-at-startup nil)
 (package-initialize)
 
+
+;; package.el updates the saved version of package-selected-packages correctly only
+;; after custom-file has been loaded, which is a bug. We work around this by adding
+;; the required packages to package-selected-packages after startup is complete.
+
+(defvar sanityinc/required-packages nil)
+
+(defun sanityinc/note-selected-package (oldfun package &rest args)
+  "If OLDFUN reports PACKAGE was successfully installed, note it in `sanityinc/required-packages'."
+  (let ((available (apply oldfun package args)))
+    (prog1 available
+      (when (and available (boundp 'package-selected-packages))
+        (add-to-list 'sanityinc/required-packages package)))))
+
+(advice-add 'require-package :around 'sanityinc/note-selected-package)
+
+(when (fboundp 'package--save-selected-packages)
+  (require-package 'seq)
+  (add-hook 'after-init-hook
+            (lambda () (package--save-selected-packages
+                   (seq-uniq (append sanityinc/required-packages package-selected-packages))))))
 
 
 (require-package 'fullframe)
 (fullframe list-packages quit-window)
 
 
-(require-package 'cl-lib)
-(require 'cl-lib)
-
 (defun sanityinc/set-tabulated-list-column-width (col-name width)
   "Set any column with name COL-NAME to the given WIDTH."
   (when (> width (length col-name))
@@ -105,3 +110,4 @@ locate PACKAGE."
 
 
 (provide 'init-elpa)
+;;; init-elpa.el ends here
