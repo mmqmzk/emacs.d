@@ -1,3 +1,7 @@
+;;; init-utils.el --- Elisp helper functions and commands -*- lexical-binding: t -*-
+;;; Commentary:
+;;; Code:
+
 (if (fboundp 'with-eval-after-load)
     (defalias 'after-load 'with-eval-after-load)
   (defmacro after-load (feature &rest body)
@@ -36,7 +40,8 @@
 (defun delete-this-file ()
   "Delete the current file, and kill the buffer."
   (interactive)
-  (or (buffer-file-name) (error "No file is currently being edited"))
+  (unless (buffer-file-name)
+    (error "No file is currently being edited"))
   (when (yes-or-no-p (format "Really delete '%s'?"
                              (file-name-nondirectory buffer-file-name)))
     (delete-file (buffer-file-name))
@@ -73,3 +78,4 @@
 
 
 (provide 'init-utils)
+;;; init-utils.el ends here
