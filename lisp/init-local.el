@@ -59,6 +59,10 @@
 (define-key evil-normal-state-map (kbd "SPC 2") 'avy-goto-char-2)
 (define-key evil-normal-state-map (kbd "SPC l") 'avy-goto-line)
 
+(require-package 'ag)
+(setq ag-reuse-window t)
+(setq ag-reuse-buffers t)
+
 (if (version<= "26.0.50" emacs-version )
   (global-display-line-numbers-mode)
   (global-linum-mode 1))
